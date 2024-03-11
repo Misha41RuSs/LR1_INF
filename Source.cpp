@@ -8,14 +8,14 @@ using namespace std;
 void task_a();  // Прототип функции Задания #1
 void task_b();  // Прототип функции Задания #2
 void task_c();  // Прототип функции Задания #3
-int counting_digits(double num);  // Прототип функции подсчёта цифр в числе
+pair<int, int> countDigits(const string& number); // Прототип функции подсчёта цифр в числе
 
 int main(void) {
     setlocale(LC_ALL, "RUS");
     // Вызов функций поочередно 
     task_a();
-    /*task_b();
-    task_c();*/
+    task_b();
+    task_c();
     
     return 0;
 }
@@ -108,32 +108,41 @@ void task_c() {
     double num;
     cout << "Введите число: ";
     cin >> num;
-    int numbers = counting_digits(num);                     // Переменной присваиваем результат функции подсчёта цифр в числе
-    double delta_abs = 0.5 * pow(10, -numbers);             // Предельная абсолютная погрешность, т.к все цифры по условию верные из определения 0.5 * 10^-"кол-во цифр"
-    double delta_rel_percentage = (delta_abs / abs(num)) * 100.0;      // Предельная относительная погрешность в %
-    double delta_rel = (delta_abs / abs(num));              // Предельная относительная погрешность в виде числа
-    cout << "Предельная абсолютная погрешность: " << fixed << setprecision(10) << delta_abs << endl;
+
+    string stringNum = to_string(num);
+
+    pair<int, int> digits = countDigits(stringNum);
+
+    double delta_abs = 0.5 * pow(10, -digits.second - 1);
+    double delta_rel_percentage = (delta_abs / abs(num)) * 100.0;
+    double delta_rel = (delta_abs / abs(num));
+
+    cout << "Предельная абсолютная погрешность: " << fixed << setprecision(8) << delta_abs << endl;
     cout << "Предельная относительная погрешность в %: " << delta_rel_percentage << endl;
     cout << "Предельная относительная погрешность в виде числа: " << delta_rel << endl;
 } 
 
 // Функция подсчёта цифр в числе
-int counting_digits(double num) {
-    double tmp = num;                       // Создаем копию переменной
-    int cnt_int = 0;                        // Счётчик цифр целой части числа
-    while ((int)tmp > 0) {                  // Стандартный алгоритм подсчёта цифр целого числа
-        tmp /= 10;
-        cnt_int++;
+pair<int, int> countDigits(const string& number) {
+    int integerDigits = 0;
+    int decimalDigits = 0;
+    bool decimalPart = false;
+
+    for (char c : number) {
+        if (c == ',') {
+            decimalPart = true;
+        }
+        else {
+            if (decimalPart) {
+                if (c == '0')
+                    break;
+                decimalDigits++;
+            }
+            else {
+                integerDigits++;
+            }
+        }
     }
-    double tmp_1 = num;                     // Создаем копию переменной
-    int cnt_fract = 0;                      // Счётчик цифр дробной части числа
-    /*
-    * Пока разность нашего числа с числом без дробной части больше условно 10^-10 (т.к. в памяти комьютера числа хранятся неточно)
-    * Домножаем число на 10 и счётчик увеличиваем на 1
-    */
-    while (tmp_1 - (int)tmp_1 > 1e-10) {    
-        tmp_1 *= 10;
-        cnt_fract++;
-    }
-    return cnt_fract + cnt_int;            // Возвращаем общее кол-во цифр в числе
+
+    return make_pair(integerDigits, decimalDigits);
 }
